@@ -1,0 +1,7 @@
+config: scripts/config_sim_6_envs.yaml
+image_string: binary_images/default_mask_racetrack_segmented.png
+max_envs: 1
+name: !!python/tuple
+- 0
+- 0
+render_mode: human

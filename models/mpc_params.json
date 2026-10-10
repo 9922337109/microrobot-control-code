@@ -1,0 +1,26 @@
+{
+  "controller_type": "Kinematic Model Predictive Path Shielding",
+  "prediction_horizon_steps": 1,
+  "dt_seconds": 0.05,
+  "linear_velocity_pixels_per_step": 2.0,
+  "linear_velocity_um_per_step": 100.0,
+  "physical_scale_um_per_pixel": 50.0,
+  "robot_radius_pixels": 1.5,
+  "robot_radius_um": 75.0,
+  "safety_distance_threshold_delta_pixels": 8.0,
+  "safety_distance_threshold_delta_um": 400.0,
+  "adaptive_safety_threshold_range_pixels": [
+    4.0,
+    6.0
+  ],
+  "adaptive_safety_threshold_range_um": [
+    200.0,
+    300.0
+  ],
+  "actuation_voltage_limits_volts": [
+    -10.0,
+    10.0
+  ],
+  "action_discretization_modes": 8,
+  "wall_collision_boundary_margin": 1.0
+}

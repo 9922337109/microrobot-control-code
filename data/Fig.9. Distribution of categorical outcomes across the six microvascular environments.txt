@@ -1,0 +1,132 @@
+import matplotlib.pyplot as plt
+import numpy as np
+
+# 1. Define Q1 Journal Styling & Colorblind-Safe Palette
+# Using high-contrast, universally readable colors:
+# Success = Soft Blue, Collision = Dark Muted Red, Timeout = Muted Orange/Yellow
+COLORS = ['#377eb8', '#e41a1c', '#ff7f00']  
+FONT_SIZE = 10
+plt.rcParams.update({
+    'font.family': 'sans-serif',
+    'font.sans-serif': ['Arial', 'Helvetica', 'DejaVu Sans'],
+    'font.size': FONT_SIZE,
+    'axes.labelsize': FONT_SIZE + 1,
+    'axes.titlesize': FONT_SIZE + 2,
+    'xtick.labelsize': FONT_SIZE,
+    'ytick.labelsize': FONT_SIZE,
+    'figure.titlesize': FONT_SIZE + 4
+})
+
+# 2. Mock Data Setup (Matches your exact layout structure)
+environments = [
+    ['Vascular', 'Capillary', 'Veins (Sanctuary)'],
+    ['Vascular Large', 'Racetrack', 'Maze 3']
+]
+
+# Y-axis labels from top to bottom
+algorithms = [
+    'Traditional MPC', 'PPO Baseline', 
+    'DreamerV3 Unshielded', 'DreamerV3 Hybrid', 'DreamerV3 Hierarchical',
+    'TQC Unshielded', 'TQC Hybrid', 'TQC Hierarchical'
+]
+y_pos = np.arange(len(algorithms))
+
+# Mock data mapping: [Success, Collision, Timeout] summing to 100
+# (Replace this dictionary with your actual experiment metrics)
+data_dict = {
+    'Vascular': np.array([[100,0,0], [100,0,0], [30,70,0], [40,0,60], [60,0,40], [10,90,0], [50,0,50], [50,0,50]]),
+    'Capillary': np.array([[100,0,0], [100,0,0], [20,80,0], [30,0,70], [50,0,50], [10,90,0], [20,0,80], [30,0,70]]),
+    'Veins (Sanctuary)': np.array([[100,0,0], [100,0,0], [50,50,0], [40,0,60], [30,0,70], [100,0,0], [80,0,20], [70,0,30]]),
+    'Vascular Large': np.array([[100,0,0], [100,0,0], [30,70,0], [50,0,50], [60,0,40], [40,60,0], [60,0,40], [40,0,60]]),
+    'Racetrack': np.array([[100,0,0], [100,0,0], [20,80,0], [50,0,50], [70,0,30], [30,70,0], [20,0,80], [20,0,80]]),
+    'Maze 3': np.array([[100,0,0], [100,0,0], [20,80,0], [20,0,80], [50,0,50], [20,80,0], [10,0,90], [30,0,70]])
+}
+
+# 3. Create the Figure Layout (2 rows, 3 columns)
+fig, axes = plt.subplots(2, 3, figsize=(14, 8), sharey=True)
+panel_letters = [['(a)', '(b)', '(c)'], ['(d)', '(e)', '(f)']]
+
+# Loop through rows and columns to plot each environment
+for row in range(2):
+    for col in range(3):
+        ax = axes[row, col]
+        env_name = environments[row][col]
+        data = data_dict[env_name]
+        
+        # Reverse the order so the first item in the list appears at the top of the plot
+        data = data[::-1]
+        display_algorithms = algorithms[::-1]
+        
+        # Calculate cumulative stacks
+        lefts = np.zeros(len(algorithms))
+        
+        # Plot each category: Success (0), Collision (1), Timeout (2)
+        for idx in range(3):
+            category_widths = data[:, idx]
+            
+            # Hide edges or use thin white borders to separate the categories cleanly
+            bars = ax.barh(y_pos, category_widths, left=lefts, color=COLORS[idx], 
+                          edgecolor='white', linewidth=0.5, height=0.7)
+            
+            # 4. Smart Labeling: Only add text inside bars if there is enough space
+            for bar, width in zip(bars, category_widths):
+                if width >= 15:  # Only write text if the block takes up >= 15% width
+                    ax.text(
+                        bar.get_x() + bar.get_width() / 2, 
+                        bar.get_y() + bar.get_height() / 2,
+                        f'{int(width)}%', 
+                        ha='center', va='center', 
+                        color='white', fontweight='bold', fontsize=8
+                    )
+            
+            lefts += category_widths
+
+        # Formatting axes
+        ax.set_title(env_name, pad=12, fontweight='semibold')
+        ax.set_xlim(0, 100)
+        ax.set_xticks([0, 25, 50, 75, 100])
+        
+        # Hide top and right spines for a clean modern layout
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        
+        # Gridlines (optional but keeps it tidy)
+        ax.xaxis.grid(True, linestyle='--', alpha=0.5, zorder=0)
+        ax.set_axisbelow(True)
+
+        # Set Y-axis labels only for the first column to save space
+        if col == 0:
+            ax.set_yticks(y_pos)
+            ax.set_yticklabels(display_algorithms)
+            # Add explicit padding between the y-labels and the axis line
+            ax.tick_params(axis='y', pad=8)
+        else:
+            ax.tick_params(axis='y', which='both', left=False)
+
+        # Set X-axis labels only for the bottom row
+        if row == 1:
+            ax.set_xlabel('Share of episodes (%)')
+
+        # 5. Add Panel Labels (a, b, c, d, e, f) in the top-left of each subplot
+        ax.text(-0.05 if col == 0 else -0.02, 1.08, panel_letters[row][col], 
+                transform=ax.transAxes, fontweight='bold', fontsize=12, va='top')
+
+# 6. Adjust spacing to allow layout breathing room without clamping columns together
+plt.subplots_adjust(wspace=0.15, hspace=0.35)
+
+# 7. Add Legend at the bottom center of the figure
+legend_labels = ['Success', 'Collision', 'Timeout']
+fig.legend(
+    handles=[plt.Rectangle((0,0),1,1, color=COLORS[i]) for i in range(3)],
+    labels=legend_labels,
+    loc='lower center', 
+    ncol=3, 
+    frameon=True,
+    bbox_to_anchor=(0.5, -0.02)
+)
+
+# 8. CRITICAL: Export directly as a vector file format for ultra-sharp rendering
+plt.savefig('categorical_outcome_distribution.pdf', bbox_inches='tight', dpi=600)
+plt.savefig('categorical_outcome_distribution.eps', bbox_inches='tight', dpi=600)
+
+plt.show()

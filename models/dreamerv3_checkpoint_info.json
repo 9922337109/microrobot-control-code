@@ -1,0 +1,21 @@
+{
+  "configuration_names": [
+    "DreamerV3 Unshielded",
+    "DreamerV3 Hybrid",
+    "DreamerV3 Hierarchical"
+  ],
+  "model_architecture": "DreamerV3 RSSM World Model (Hafner et al., 2023) + Actor-Critic",
+  "total_parameters": 76751882,
+  "parameter_breakdown": {
+    "world_model_rssm": 68279811,
+    "actor_network": 4141064,
+    "critic_network": 4331007
+  },
+  "latent_state_dimension": 10240,
+  "framework": "JAX / Flax backend with Optax optimizer",
+  "checkpoint_source_path": "results/logs/finetuned_paper_upgrades/checkpoint.ckpt",
+  "checkpoint_size_bytes": 2505996328,
+  "checkpoint_sha256": "4b9e11ad2ef94e1e9389e6027a4d468160bc4b3f1c5d0ce1804f85e490ec3851",
+  "availability_status": "Available in the restricted Zenodo record (DOI to be inserted); SHA256 4b9e11ad...3851 verifies integrity after download.",
+  "loading_script": "code/training_and_eval/play_guided_hybrid.py"
+}

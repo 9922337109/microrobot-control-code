@@ -1,0 +1,115 @@
+# -*- coding: utf-8 -*-
+"""Learning-curve figure: (a) Sample Efficiency DreamerV3 vs PPO,
+(b) TQC Progression & SuANN Convergence. 600 dpi PNG+PDF, auto-open.
+NOTE: curves are deterministic reconstructions; replace the marked arrays
+with your real log columns (steps, return, suann_mse) when available."""
+import os
+from pathlib import Path
+import numpy as np
+import matplotlib.pyplot as plt
+
+OUT = Path(__file__).resolve().parent
+BG = "#F6FAFD"          # set "#FFFFFF" for pure-white journal canvas
+
+# ---------------- parameters (from your panel) ----------------
+D3_STEPS, PPO_STEPS, RATIO = 11775, 793694, 67.4
+PPO_LOG_END = 100352
+THRESH = -13.45
+BLUE, ORANGE, RED, GREEN, GREY = "#2b7bba", "#e07b39", "#c0392b", "#16a085", "#888888"
+
+# ---------------- (a) synthetic-but-shaped logs ----------------
+rng = np.random.default_rng(7)
+def ma(y, k=5):
+    c = np.cumsum(np.insert(y, 0, 0)); return (c[k:] - c[:-k]) / k
+
+d3_x = np.geomspace(1e3, 2.2e4, 240)
+d3_tr = np.interp(np.log(d3_x),
+                  np.log([1e3, 3e3, 5e3, 6.5e3, 8e3, 9e3, 1.05e4, 1.1775e4, 1.4e4, 1.7e4, 2.2e4]),
+                  [-50, -49, -47, -25, -45, -28, -24, -35, -12, -6, -9])
+spike = np.zeros_like(d3_x)
+spike[np.argmin(abs(d3_x - 3e3))]  = -140      # raw dip to ~-190
+spike[np.argmin(abs(d3_x - 1.2e4))] = +45      # raw spike above 0
+d3_raw = d3_tr + rng.normal(0, 9, d3_x.size) + spike
+d3_sm  = ma(d3_raw)
+
+pp_x = np.geomspace(2e4, PPO_LOG_END, 200)
+pp_tr = np.interp(np.log(pp_x), np.log([2e4, 3e4, 4.5e4, 6e4, 8e4, PPO_LOG_END]),
+                  [-207, -150, -80, -50, -40, -40])
+pp_raw = pp_tr + rng.normal(0, 6, pp_x.size)
+pp_sm  = ma(pp_raw)
+
+# ---------------- (b) data read from your panel ----------------
+tq_x = np.array([.45, .65, 1.0, 1.2, 1.4, 1.6, 1.8, 2.1, 2.3, 2.45, 2.8, 3.0]) * 1e6
+tq_y = np.array([-40.5, -38.5, -19.0, -18.4, -11.4, -12.3, -23.2,
+                 -16.2, -30.6, -32.2, -12.6, -10.2])
+ms_x = np.array([.4, .6, .8, 1.05, 1.25, 1.5, 1.75, 1.9, 2.2, 2.45, 2.65, 2.85]) * 1e6
+ms_y = np.array([4e-3, 4e-3, 1.8e-3, 3e-3, 3.4e-3, 1.2e-2, 1.1e-3,
+                 3e-5, 5e-3, 8.5e-3, 2.4e-3, 4.6e-3])   # deep dip near 1e-5 tick
+
+# ================= figure =================
+fig, (a1, a2) = plt.subplots(1, 2, figsize=(11.5, 4.8))
+fig.patch.set_facecolor(BG)
+for ax in (a1, a2): ax.set_facecolor(BG)
+
+# ---------- panel (a) ----------
+a1.plot(d3_x[4:], d3_raw[4:], color=BLUE, alpha=0.20, lw=0.8)
+a1.plot(pp_x[4:], pp_raw[4:], color=ORANGE, alpha=0.20, lw=0.8)
+a1.plot(d3_x[4:], d3_sm, color=BLUE, lw=2.4, label="DreamerV3 (Model-Based)")
+a1.plot(pp_x[4:], pp_sm, color=ORANGE, lw=2.4, label="PPO (Model-Free)")
+a1.axvline(D3_STEPS, color=BLUE, ls="--", lw=1.2)
+a1.axvline(PPO_STEPS, color=ORANGE, ls="--", lw=1.2)
+i = np.argmin(abs(d3_x - D3_STEPS))
+a1.plot(D3_STEPS, d3_sm[max(i - 4, 0)], "o", ms=7, mfc="white", mec=BLUE, mew=1.6, zorder=5)
+a1.annotate("", xy=(D3_STEPS, 15), xytext=(PPO_STEPS, 15),
+            arrowprops=dict(arrowstyle="<->", lw=1.1, color="#333333"))
+a1.text(np.sqrt(D3_STEPS * PPO_STEPS), 17, f"{RATIO}× fewer interactions", ha="center",
+        va="bottom", fontsize=8, bbox=dict(fc="white", ec="#bbbbbb", pad=2))
+a1.text(1.25e4, 12, f"{D3_STEPS:,} steps\n(DreamerV3)", color=BLUE,
+        fontsize=8, fontweight="bold", va="top", ha="left")
+a1.text(7.2e5, -6, f"{PPO_STEPS:,} steps\n(PPO)", color=ORANGE,
+        fontsize=8, fontweight="bold", va="top", ha="right")
+a1.text(1.4e5, -52, f"recovered PPO log ends\n({PPO_LOG_END:,} steps)",
+        color="#999999", fontsize=7, style="italic", va="top", ha="left")
+a1.set_xscale("log"); a1.set_xlim(1e3, 1e6); a1.set_ylim(-215, 25)
+a1.set_xticks([1e3, 1e4, 1e5, 1e6]); a1.set_yticks([0, -50, -100, -150, -200])
+a1.grid(alpha=0.20, lw=0.5); a1.set_axisbelow(True)
+a1.set_xlabel("Environment Interaction Steps (Log Scale)", fontweight="bold", fontsize=9)
+a1.set_ylabel("Episode Return", fontweight="bold", fontsize=9)
+a1.set_title("(a) Sample Efficiency: DreamerV3 vs PPO", fontweight="bold", fontsize=10, pad=8)
+for s in ("top", "right"): a1.spines[s].set_visible(False)
+a1.legend(loc="upper center", bbox_to_anchor=(0.5, -0.13), ncol=2, frameon=True, fontsize=7.5)
+
+# ---------- panel (b) ----------
+a2.plot(tq_x, tq_y, "-o", color=RED, lw=2, ms=5, label="TQC Evaluation Return")
+a2.axhline(THRESH, color=GREY, ls=":", lw=1.2, label=f"90% Peak Threshold ({THRESH})")
+a2r = a2.twinx()
+a2r.plot(ms_x, ms_y, "-.s", color=GREEN, lw=1.8, ms=5, label="SuANN Dynamics MSE")
+a2r.set_yscale("log"); a2r.set_ylim(1e-5, 1e-1)
+a2r.set_yticks([1e-1, 1e-3, 1e-5]); a2r.set_yticklabels(["10⁻¹", "10⁻³", "10⁻⁵"])
+a2r.tick_params(axis="y", colors=GREEN)
+a2r.set_ylabel("SuANN MSE Loss (Log Scale)", color=GREEN, fontweight="bold", fontsize=9)
+a2.plot(1.4e6, -11.4, "o", ms=9, mfc="none", mec="black", mew=1.5, zorder=5)
+a2.annotate("~1.4M Steps", xy=(1.38e6, -10.8), xytext=(0.85e6, -2.5),
+            fontsize=8, fontweight="bold",
+            arrowprops=dict(arrowstyle="->", lw=1.1, color="black"))
+a2.set_xlim(0.3e6, 3.05e6); a2.set_ylim(-45, 3)
+a2.set_xticks([.5e6, 1e6, 1.5e6, 2e6, 2.5e6, 3e6])
+a2.set_xticklabels(["500k", "1M", "1.5M", "2M", "2.5M", "3M"])
+a2.set_yticks([0, -10, -20, -30, -40])
+a2.grid(alpha=0.15, lw=0.5); a2.set_axisbelow(True)
+a2.set_xlabel("Environment Interaction Steps", fontweight="bold", fontsize=9)
+a2.set_ylabel("Average Episode Return", color=RED, fontweight="bold", fontsize=9)
+a2.set_title("(b) TQC Progression & SuANN Convergence", fontweight="bold", fontsize=10, pad=8)
+a2.spines["top"].set_visible(False); a2r.spines["top"].set_visible(False)
+h1, l1 = a2.get_legend_handles_labels(); h2, l2 = a2r.get_legend_handles_labels()
+a2.legend(h1 + h2, l1 + l2, loc="upper center", bbox_to_anchor=(0.5, -0.15),
+          ncol=3, frameon=True, fontsize=7)
+
+fig.subplots_adjust(left=0.06, right=0.94, top=0.90, bottom=0.24, wspace=0.35)
+png, pdf = OUT / "Fig_learning_curves.png", OUT / "Fig_learning_curves.pdf"
+fig.savefig(png, dpi=600, facecolor=BG, bbox_inches="tight")
+fig.savefig(pdf, facecolor=BG, bbox_inches="tight")
+print("[saved]", png)
+try: os.startfile(png)
+except Exception: pass
+plt.show()

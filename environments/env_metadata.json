@@ -1,0 +1,121 @@
+{
+  "project": "Autonomous Hierarchical AI Navigation Framework for Ultrasound-Driven Microrobots in AML",
+  "coordinate_system": "2D Cartesian discrete grid [0, 63] x [0, 63]",
+  "simulation_grid_dimensions": {
+    "width_pixels": 64,
+    "height_pixels": 64,
+    "upscaled_resolution_pixels": 512
+  },
+  "physical_scale_calibration": {
+    "workspace_physical_size_um": [
+      3200.0,
+      3200.0
+    ],
+    "workspace_physical_size_mm": [
+      3.2,
+      3.2
+    ],
+    "um_per_pixel_sim_64": 50.0,
+    "um_per_pixel_camera_512": 6.25,
+    "step_size_pixels": 2.0,
+    "step_size_um": 100.0,
+    "agent_collision_radius_pixels": 1.5,
+    "agent_collision_radius_um": 75.0,
+    "mpc_safety_buffer_default_pixels": 8.0,
+    "mpc_safety_buffer_default_um": 400.0,
+    "mpc_safety_buffer_adaptive_range_pixels": [
+      4.0,
+      6.0
+    ],
+    "mpc_safety_buffer_adaptive_range_um": [
+      200.0,
+      300.0
+    ]
+  },
+  "environments": {
+    "Vascular": {
+      "mask_file": "Vascular.png",
+      "npy_file": "Vascular.npy",
+      "source_path": "microrobot-rl-main/binary_images/default_segmentation_vascular.png",
+      "anatomical_description": "Complex branched arterial microvessel network with multi-furcation junctions",
+      "channel_width_range_um": [
+        350.0,
+        750.0
+      ],
+      "channel_width_range_pixels": [
+        7,
+        15
+      ]
+    },
+    "Capillary": {
+      "mask_file": "Capillary.png",
+      "npy_file": "Capillary.npy",
+      "source_path": "microrobot-rl-main/binary_images/capillary.png",
+      "anatomical_description": "Ultra-narrow continuous capillary channels, high wall friction & hydrodynamic drag",
+      "channel_width_range_um": [
+        200.0,
+        350.0
+      ],
+      "channel_width_range_pixels": [
+        4,
+        7
+      ]
+    },
+    "Veins_Sanctuary": {
+      "mask_file": "Veins_Sanctuary.png",
+      "npy_file": "Veins_Sanctuary.npy",
+      "source_path": "microrobot-rl-main/binary_images/veins.png",
+      "anatomical_description": "Bone marrow microvascular leukemic sanctuary niche with tortuous irregular boundaries",
+      "channel_width_range_um": [
+        250.0,
+        500.0
+      ],
+      "channel_width_range_pixels": [
+        5,
+        10
+      ]
+    },
+    "Vascular_Large": {
+      "mask_file": "Vascular_Large.png",
+      "npy_file": "Vascular_Large.npy",
+      "source_path": "microrobot-rl-main/binary_images/default_segmentation_vascular_large.png",
+      "anatomical_description": "Wide macro-vessel corridor with low-curvature walls and high propulsion speeds",
+      "channel_width_range_um": [
+        800.0,
+        1500.0
+      ],
+      "channel_width_range_pixels": [
+        16,
+        30
+      ]
+    },
+    "Racetrack": {
+      "mask_file": "Racetrack.png",
+      "npy_file": "Racetrack.npy",
+      "source_path": "microrobot-rl-main/binary_images/default_mask_racetrack_segmented.png",
+      "anatomical_description": "Continuous closed-loop microfluidic benchmark circuit with sequential S-curves",
+      "channel_width_range_um": [
+        500.0,
+        800.0
+      ],
+      "channel_width_range_pixels": [
+        10,
+        16
+      ]
+    },
+    "Maze_3": {
+      "mask_file": "Maze_3.png",
+      "npy_file": "Maze_3.npy",
+      "source_path": "microrobot-rl-main/binary_images/maze_3.png",
+      "anatomical_description": "Multi-branch geometric labyrinth with dead-ends and non-line-of-sight goals",
+      "channel_width_range_um": [
+        300.0,
+        600.0
+      ],
+      "channel_width_range_pixels": [
+        6,
+        12
+      ]
+    }
+  }
+}
